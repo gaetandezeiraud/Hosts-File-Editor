@@ -5,6 +5,7 @@ A small utility to edit the Windows `hosts` file easily.
 I created this tool because I needed to map custom domain names to IP addresses when working with Kubernetes locally. Rather than edit the file manually every time, I decided to build a simple graphical tool to do the job.
 
 Watch in action : https://www.youtube.com/watch?v=N-e_tncrUwk
+App icon from https://github.com/legacy-icons/famfamfam-silk
 
 ## Features
 

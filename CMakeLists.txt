@@ -12,7 +12,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
+set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/hostsapp.rc")
+
 set(PROJECT_SOURCES
+    app.rc
     resources.qrc
     src/main.cpp
     src/mainwindow.cpp
