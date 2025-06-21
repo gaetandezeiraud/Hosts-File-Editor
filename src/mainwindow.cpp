@@ -38,8 +38,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->tableView->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &MainWindow::onSelectionChanged);
 
-    connect(ui->reloadButton, &QPushButton::clicked, this, &MainWindow::reload);
     connect(ui->saveButton, &QPushButton::clicked, this, &MainWindow::save);
+    connect(ui->reloadButton, &QPushButton::clicked, this, &MainWindow::reload);
+    connect(ui->closeButton, &QPushButton::clicked, this, &QApplication::quit);
 }
 
 MainWindow::~MainWindow()

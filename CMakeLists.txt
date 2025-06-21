@@ -13,22 +13,22 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+    resources.qrc
+    src/main.cpp
+    src/mainwindow.cpp
+    src/mainwindow.h
+    src/mainwindow.ui
+    src/HostModel.h
+    src/newhostdialog.h
+    src/newhostdialog.cpp
+    src/newhostdialog.ui
+    src/helper.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(HostsParameters
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        HostModel.h
-        newhostdialog.h newhostdialog.cpp newhostdialog.ui
-        resources.qrc
-        helper.h
-
-
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET HostsParameters APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
