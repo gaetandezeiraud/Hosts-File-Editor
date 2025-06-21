@@ -5,6 +5,8 @@
 #include <QString>
 #include <QVariant>
 #include <vector>
+#include <QFile>
+#include <QRegularExpression>
 
 struct Host
 {
@@ -19,6 +21,79 @@ class HostModel : public QAbstractListModel
 public:
     HostModel(QObject *parent = nullptr) : QAbstractListModel(parent)
     {}
+
+    HostModel(const QString &path, QObject *parent = nullptr) : QAbstractListModel(parent)
+    {
+        loadFromFile(path);
+    }
+
+    bool loadFromFile(const QString &path)
+    {
+        QFile file(path);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+            return false;
+
+        QTextStream in(&file);
+        std::vector<Host> newHosts;
+        static const QRegularExpression re("\\s+");
+
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (line.isEmpty() || line.startsWith("#"))
+                continue;
+
+            const QStringList parts = line.split(re, Qt::SkipEmptyParts);
+            if (parts.size() >= 2)
+                newHosts.push_back({ parts[0], parts[1] });
+        }
+
+        file.close();
+
+        beginResetModel();
+        _hosts = std::move(newHosts);
+        endResetModel();
+
+        return true;
+    }
+
+    bool saveToFile(const QString &path) const
+    {
+        QFile file(path);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            return false;
+
+        QTextStream out(&file);
+
+        // Optional header — could be stored elsewhere
+        out << R"(# Copyright (c) 1993-2009 Microsoft Corp.
+#
+# This is a sample HOSTS file used by Microsoft TCP/IP for Windows.
+#
+# This file contains the mappings of IP addresses to host names. Each
+# entry should be kept on an individual line. The IP address should
+# be placed in the first column followed by the corresponding host name.
+# The IP address and the host name should be separated by at least one
+# space.
+#
+# Additionally, comments (such as these) may be inserted on individual
+# lines or following the machine name denoted by a '#' symbol.
+#
+# For example:
+#
+#      102.54.94.97     rhino.acme.com          # source server
+#       38.25.63.10     x.acme.com              # x client host
+#
+# localhost name resolution is handled within DNS itself.
+#	127.0.0.1       localhost
+#	::1             localhost
+)";
+
+        for (const Host &h : _hosts)
+            out << h.ip << "\t" << h.domain << "\n";
+
+        file.close();
+        return true;
+    }
 
     void setHostData(const std::vector<Host> &data)
     {

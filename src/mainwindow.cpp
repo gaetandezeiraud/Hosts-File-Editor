@@ -18,13 +18,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    LoadHosts();
-
     // Set up proxy
     _proxyModel = new QSortFilterProxyModel(this);
-    _proxyModel->setSourceModel(_hostModel.get());
     _proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     _proxyModel->setFilterKeyColumn(-1); // All columns
+
+    // Load data
+    LoadHosts();
 
     // Init UI
     ui->tableView->setModel(_proxyModel);
@@ -50,54 +50,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::LoadHosts()
 {
-    QFile hostsFile = QFile("C:\\Windows\\System32\\drivers\\etc\\hosts");
-
-    if (!hostsFile.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QString errorMsg = "Unable to open hosts file:\n" + hostsFile.errorString();
-        qWarning() << errorMsg;
-
-        QMessageBox::critical(this, "Error Opening Hosts File", errorMsg);
-        return;
-    }
-
-    QTextStream in(&hostsFile);
-    QStringList entries;
-
-    while (!in.atEnd())
-    {
-        QString line = in.readLine().trimmed();
-        if (line.isEmpty() || line.startsWith("#"))
-            continue; // Skip empty or comment lines
-        entries << line;
-    }
-
-    hostsFile.close();
-
-    // Generate entries list
-    std::vector<Host> hosts;
-    hosts.reserve(entries.size());
-
-    static const QRegularExpression expression = QRegularExpression("\\s+");
-
-    for (const QString& entry : entries)
-    {
-        const QStringList values = entry.split(expression, Qt::SkipEmptyParts);
-        if (values.size() < 2)
-            continue;
-
-        hosts.push_back(Host{ values[0], values[1] });
-    }
-
-    // Init model
     _hostModel.reset(new HostModel(this));
-    _hostModel->setHostData(hosts);
+    if (!_hostModel->loadFromFile("C:\\Windows\\System32\\drivers\\etc\\hosts"))
+        QMessageBox::critical(this, "Error Opening Hosts File", "Unable to open hosts file.");
+
+    _proxyModel->setSourceModel(_hostModel.get());
 }
 
 void MainWindow::reload()
 {
     LoadHosts();
-    _proxyModel->setSourceModel(_hostModel.get());
 }
 
 void MainWindow::add()
@@ -143,50 +105,10 @@ void MainWindow::onSelectionChanged(const QItemSelection &selected, const QItemS
 void MainWindow::save()
 {
     QString tempPath = QDir::temp().filePath("hosts_temp");
-
-    // Write to temp file
-    QFile tempFile(tempPath);
-    if (!tempFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
+    if (!_hostModel->saveToFile(tempPath)) {
         QMessageBox::critical(this, "Error", "Cannot write temporary hosts file.");
         return;
     }
-    QTextStream out(&tempFile);
-
-    // Write the full hosts file header as a raw string literal
-    out << R"(# Copyright (c) 1993-2009 Microsoft Corp.
-#
-# This is a sample HOSTS file used by Microsoft TCP/IP for Windows.
-#
-# This file contains the mappings of IP addresses to host names. Each
-# entry should be kept on an individual line. The IP address should
-# be placed in the first column followed by the corresponding host name.
-# The IP address and the host name should be separated by at least one
-# space.
-#
-# Additionally, comments (such as these) may be inserted on individual
-# lines or following the machine name denoted by a '#' symbol.
-#
-# For example:
-#
-#      102.54.94.97     rhino.acme.com          # source server
-#       38.25.63.10     x.acme.com              # x client host
-#
-# localhost name resolution is handled within DNS itself.
-#	127.0.0.1       localhost
-#	::1             localhost
-)";
-
-    int rowCount = _hostModel->rowCount();
-    int colCount = _hostModel->columnCount();
-    for (int row = 0; row < rowCount; ++row)
-    {
-        QStringList columns;
-        for (int col = 0; col < colCount; ++col)
-            columns << _hostModel->data(_hostModel->index(row, col)).toString();
-        out << columns.join("\t") << "\n";
-    }
-    tempFile.close();
 
     QString tempPathNative = QDir::toNativeSeparators(tempPath);
     QString hostsFilePath = "C:\\Windows\\System32\\drivers\\etc\\hosts";
