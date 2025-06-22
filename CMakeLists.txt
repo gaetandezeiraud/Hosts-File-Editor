@@ -9,6 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
+set(APPLICATION_DIR_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
@@ -76,4 +79,19 @@ install(TARGETS HostsParameters
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(HostsParameters)
+endif()
+
+if (CMAKE_BUILD_TYPE MATCHES "Release")
+    if(WIN32)
+        find_program(QT_DEPLOY_QT NAMES windeployqt)
+        add_custom_target(Script-DeployRelease
+            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_SOURCE_DIR}/dist
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} ${CMAKE_SOURCE_DIR}/dist
+            COMMAND ${QT_DEPLOY_QT} --qmldir=${CMAKE_CURRENT_LIST_DIR} --no-translations --compiler-runtime ${CMAKE_SOURCE_DIR}/dist/${PROJECT_NAME}.exe
+            COMMAND ${CMAKE_COMMAND} -E rename "${CMAKE_SOURCE_DIR}/dist/${PROJECT_NAME}.exe" "${CMAKE_SOURCE_DIR}/dist/Hosts File Editor.exe"
+            COMMENT "Windows Deploying Qt Dependencies After Build........."
+            SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+    endif()
 endif()
