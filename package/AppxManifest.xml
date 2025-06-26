@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+        xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+        xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+        xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+        xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+        xmlns:rescap3="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities/3">
+    <Identity Name="62041DezeiraudGatan.HostsFileEditor"
+              ProcessorArchitecture="x64"
+              Publisher="CN=800CCE0D-66E2-4A84-8527-0510570A1772"
+              Version="1.0.0.0" />
+    <Resources>
+        <Resource Language="en-US" />
+        <Resource uap:Scale="100" />
+        <Resource uap:Scale="125" />
+        <Resource uap:Scale="150" />
+        <Resource uap:Scale="200" />
+        <Resource uap:Scale="400" />
+    </Resources>
+    <Properties>
+        <PublisherDisplayName>Dezeiraud Gaëtan</PublisherDisplayName>
+        <DisplayName>Hosts File Editor</DisplayName>
+        <Description>A small utility to edit the Windows hosts file easily.</Description>
+        <Logo>assets\Square44x44Logo.png</Logo>
+    </Properties>
+    <Dependencies>
+        <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19045.0" MaxVersionTested="10.0.26100.0" />
+        <PackageDependency Name="Microsoft.VCLibs.140.00" MinVersion="14.0.24217.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" />
+        <PackageDependency Name="Microsoft.VCLibs.140.00.UWPDesktop" MinVersion="14.0.24217.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" />
+    </Dependencies>
+    <Capabilities>
+        <rescap:Capability Name="runFullTrust"/>
+    </Capabilities>
+    <Applications>
+        <Application Id="HostsFileEditor" Executable="Hosts File Editor.exe" EntryPoint="Windows.FullTrustApplication">
+            <uap:VisualElements
+                    BackgroundColor="transparent"
+                    DisplayName="Hosts File Editor"
+                    Square150x150Logo="assets\Square150x150Logo.png"
+                    Square44x44Logo="assets\Square44x44Logo.png"
+                    Description="A small utility to edit the Windows hosts file easily.">
+                <uap:DefaultTile Wide310x150Logo="assets\Wide310x150Logo.scale-100.png">
+                    <uap:ShowNameOnTiles>
+                        <uap:ShowOn Tile="square150x150Logo" />
+                        <uap:ShowOn Tile="wide310x150Logo" />
+                    </uap:ShowNameOnTiles>
+                </uap:DefaultTile>
+                <uap:SplashScreen Image="assets\SplashScreen.scale-100.png" />
+            </uap:VisualElements>
+        </Application>
+    </Applications>
+</Package>

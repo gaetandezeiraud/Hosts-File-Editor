@@ -5,7 +5,6 @@ A small utility to edit the Windows `hosts` file easily.
 I created this tool because I needed to map custom domain names to IP addresses when working with Kubernetes locally. Rather than edit the file manually every time, I decided to build a simple graphical tool to do the job.
 
 Watch in action : https://www.youtube.com/watch?v=N-e_tncrUwk
-App icon from https://github.com/legacy-icons/famfamfam-silk
 
 ## Features
 
@@ -35,6 +34,7 @@ When working with local environments like Kubernetes, it's common to route domai
 
 - Saving the hosts file requires admin rights. The app will attempt to elevate automatically when needed.
 - Backup your original `hosts` file before making changes, just in case.
+- To generate msix resources.pri use `makepri new /pr . /cf priconfig.xml /of resources.pri`
 
 ## License
 

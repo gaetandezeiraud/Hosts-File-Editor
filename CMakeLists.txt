@@ -93,5 +93,28 @@ if (CMAKE_BUILD_TYPE MATCHES "Release")
             SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         )
+
+        # MSIX
+        find_program(MAKEAPPX NAMES makeappx)
+        find_program(SIGNTOOL NAMES signtool)
+
+        add_custom_target(Script-PackageMSIX
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/AppxManifest.xml ${CMAKE_SOURCE_DIR}/dist/AppxManifest.xml
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/priconfig.xml ${CMAKE_SOURCE_DIR}/dist/priconfig.xml
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/resources.pri ${CMAKE_SOURCE_DIR}/dist/resources.pri
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/resources.scale-125.pri ${CMAKE_SOURCE_DIR}/dist/resources.scale-125.pri
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/resources.scale-150.pri ${CMAKE_SOURCE_DIR}/dist/resources.scale-150.pri
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/resources.scale-200.pri ${CMAKE_SOURCE_DIR}/dist/resources.scale-200.pri
+            COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/package/resources.scale-400.pri ${CMAKE_SOURCE_DIR}/dist/resources.scale-400.pri
+            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/package/assets ${CMAKE_SOURCE_DIR}/dist/assets
+            COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/dist/vc_redist.x64.exe
+            COMMAND ${CMAKE_COMMAND} -E remove -f ${CMAKE_SOURCE_DIR}/dist/HostsFileEditor.msix
+            COMMAND ${MAKEAPPX} pack -d ${CMAKE_SOURCE_DIR}/dist -p ${CMAKE_SOURCE_DIR}/dist/HostsFileEditor.msix
+            COMMAND ${SIGNTOOL} sign /f ${CMAKE_SOURCE_DIR}/selfsignedcert.pfx /p password /fd SHA256 /td SHA256 /tr http://timestamp.comodoca.com ${CMAKE_SOURCE_DIR}/dist/HostsFileEditor.msix
+            COMMENT "Creating MSIX package........."
+            SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+
     endif()
 endif()
