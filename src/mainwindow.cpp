@@ -29,6 +29,9 @@ MainWindow::MainWindow(QWidget *parent)
     // Init UI
     ui->tableView->setModel(_proxyModel);
 
+    // This line resizes column 0 to fit its contents (checkbox)
+    ui->tableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+
     // Connect
     connect(ui->addButton, &QPushButton::clicked, this, &MainWindow::add);
     connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::remove);
@@ -75,8 +78,9 @@ void MainWindow::add()
 
         int row = _hostModel->rowCount();
         if (_hostModel->insertRow(row)) {
-            _hostModel->setData(_hostModel->index(row, 0), ip);
-            _hostModel->setData(_hostModel->index(row, 1), domain);
+            _hostModel->setData(_hostModel->index(row, 0), true);
+            _hostModel->setData(_hostModel->index(row, 1), ip);
+            _hostModel->setData(_hostModel->index(row, 2), domain);
         }
     }
 }

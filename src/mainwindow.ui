@@ -14,7 +14,7 @@
    <bool>false</bool>
   </property>
   <property name="windowTitle">
-   <string>Hosts</string>
+   <string>Hosts File Editor</string>
   </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>

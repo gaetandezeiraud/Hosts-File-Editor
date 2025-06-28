@@ -1,7 +1,7 @@
 #ifndef HOSTMODEL_H
 #define HOSTMODEL_H
 
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
 #include <QString>
 #include <QVariant>
 #include <vector>
@@ -10,19 +10,20 @@
 
 struct Host
 {
+    bool enabled;
     QString ip;
     QString domain;
 };
 
-class HostModel : public QAbstractListModel
+class HostModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    HostModel(QObject *parent = nullptr) : QAbstractListModel(parent)
+    HostModel(QObject *parent = nullptr) : QAbstractTableModel(parent)
     {}
 
-    HostModel(const QString &path, QObject *parent = nullptr) : QAbstractListModel(parent)
+    HostModel(const QString &path, QObject *parent = nullptr) : QAbstractTableModel(parent)
     {
         loadFromFile(path);
     }
@@ -40,11 +41,21 @@ public:
         while (!in.atEnd()) {
             QString line = in.readLine().trimmed();
             if (line.isEmpty() || line.startsWith("#"))
-                continue;
+            {
+                if (!line.startsWith("#!"))
+                    continue;
+            }
+
+            bool enabled = true;
+
+            if (line.startsWith("#!")) {
+                enabled = false;
+                line = line.mid(2).trimmed();  // Remove "#!" prefix
+            }
 
             const QStringList parts = line.split(re, Qt::SkipEmptyParts);
             if (parts.size() >= 2)
-                newHosts.push_back({ parts[0], parts[1] });
+                newHosts.push_back({ enabled, parts[0], parts[1] });
         }
 
         file.close();
@@ -89,7 +100,7 @@ public:
 )";
 
         for (const Host &h : _hosts)
-            out << h.ip << "\t" << h.domain << "\n";
+            out << (h.enabled ? "" : "#!") << h.ip << "\t" << h.domain << "\n";
 
         file.close();
         return true;
@@ -113,8 +124,7 @@ public:
             return false;
 
         beginInsertRows(parent, row, row);
-        Host newHost;
-        _hosts.insert(_hosts.begin() + row, newHost);
+        _hosts.insert(_hosts.begin() + row, {true, "", ""});
         endInsertRows();
 
         return true;
@@ -132,7 +142,7 @@ public:
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override
     {
-        return parent.isValid() ? 0 : 2; // ip, domain
+        return parent.isValid() ? 0 : 3; // enabled, ip, domain
     }
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
@@ -140,14 +150,23 @@ public:
         if (!index.isValid())
             return QVariant();
 
-        if (role == Qt::DisplayRole || role == Qt::EditRole)
-        {
-            const Host &host = _hosts.at(index.row());
+        const Host &host = _hosts.at(index.row());
+        switch (role) {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
             switch (index.column()) {
-                case 0: return host.ip;
-                case 1: return host.domain;
-                default: return QVariant();
+            case 1: return host.ip;
+            case 2: return host.domain;
+            default: return QVariant();
             }
+
+        case Qt::CheckStateRole:
+            if (index.column() == 0)
+                return host.enabled ? Qt::Checked : Qt::Unchecked;
+            break;
+
+        default:
+            break;
         }
 
         return QVariant();
@@ -155,24 +174,34 @@ public:
 
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override
     {
-        if (!index.isValid() || role != Qt::EditRole)
+        if (!index.isValid())
             return false;
 
         Host &host = _hosts[index.row()];
 
-        switch (index.column()) {
-        case 0:
-            host.ip = value.toString();
-            break;
-        case 1:
-            host.domain = value.toString();
-            break;
-        default:
-            return false;
+        if (index.column() == 0 && role == Qt::CheckStateRole) {
+            host.enabled = (value.toInt() == Qt::Checked);
+            emit dataChanged(index, index, {role});
+            return true;
         }
 
-        emit dataChanged(index, index, {role});
-        return true;
+        if (role == Qt::EditRole) {
+            switch (index.column()) {
+            case 1:
+                host.ip = value.toString();
+                break;
+            case 2:
+                host.domain = value.toString();
+                break;
+            default:
+                return false;
+            }
+
+            emit dataChanged(index, index, {role});
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -180,8 +209,9 @@ public:
     {
         if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
             switch (section) {
-            case 0: return "Ip";
-            case 1: return "Domain";
+            case 0: return "";
+            case 1: return "Ip";
+            case 2: return "Domain";
             default: return QVariant();
             }
         }
@@ -194,7 +224,12 @@ public:
         if (!index.isValid())
             return Qt::NoItemFlags;
 
-        return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
+        Qt::ItemFlags defaultFlags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+
+        if (index.column() == 0)
+            return defaultFlags | Qt::ItemIsUserCheckable;
+        else
+            return defaultFlags | Qt::ItemIsEditable;
     }
 
 private:
