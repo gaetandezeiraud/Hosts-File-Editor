@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>430</width>
-    <height>461</height>
+    <height>460</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>430</width>
+    <height>460</height>
+   </size>
   </property>
   <property name="acceptDrops">
    <bool>false</bool>
